@@ -1,0 +1,121 @@
+﻿{% extends "base.html" %}
+{% block title %}Food Saving Tips{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Introduction -->
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-success">Food Saving Tips</h2>
+        <p class="lead text-muted mb-0">Simple ways to use food better.</p><p class="text-muted small mt-2">Simple habits can help you use food better, save money and reduce unnecessary food waste.</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Before You Shop -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 border-top border-primary border-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-0 text-primary">Before You Shop</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item border-0 px-0 pb-2"><strong>1.</strong> Check My Food</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><strong>2.</strong> See what needs to be used soon</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><strong>3.</strong> Plan a few meals</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><strong>4.</strong> Buy only what you need</li>
+                    </ul>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('food_list') }}" class="btn btn-sm btn-outline-primary">Check My Food</a>
+                        <a href="{{ url_for('add_meal') }}" class="btn btn-sm btn-outline-primary">Plan a Meal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Store Food Better -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 border-top border-info border-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-0 text-info">Store Food Better</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-info me-2">&bull;</span>Keep perishable food in the refrigerator when needed.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-info me-2">&bull;</span>Keep older food in front so it gets used first.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-info me-2">&bull;</span>Store food in clean and closed containers.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-info me-2">&bull;</span>Check expiry and best-before dates regularly.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-info me-2">&bull;</span>Keep fruits and vegetables properly stored.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Leftovers Better -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 border-top border-warning border-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-0 text-warning">Use Leftovers Better</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-warning text-dark me-2">&bull;</span>Check usable leftovers before cooking a new meal.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-warning text-dark me-2">&bull;</span>Plan the next meal around food already available.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-warning text-dark me-2">&bull;</span>Store usable leftovers safely.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-warning text-dark me-2">&bull;</span>Use suitable leftovers in another meal when safe.</li>
+                        <li class="list-group-item border-0 px-0 pb-2"><span class="text-warning text-dark me-2">&bull;</span>Avoid cooking more than the household usually needs.</li>
+                    </ul>
+                    <div class="alert alert-danger py-2 mb-0 small">
+                        <strong>Safety Note:</strong> Do not eat or reuse food that looks or smells unsafe.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simple Leftover Ideas -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 border-top border-secondary border-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-0 text-secondary">Simple Leftover Ideas</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item border-0 px-0 pb-2">
+                            <strong>Cooked rice:</strong><br><span class="text-muted small">Can be used in another suitable rice dish if it has been stored safely.</span>
+                        </li>
+                        <li class="list-group-item border-0 px-0 pb-2">
+                            <strong>Vegetables:</strong><br><span class="text-muted small">Can be included in the next suitable meal.</span>
+                        </li>
+                        <li class="list-group-item border-0 px-0 pb-2">
+                            <strong>Bread:</strong><br><span class="text-muted small">Can be used for toast or another simple dish if still safe to eat.</span>
+                        </li>
+                        <li class="list-group-item border-0 px-0 pb-2">
+                            <strong>Fruit:</strong><br><span class="text-muted small">Use ripe fruit soon or include it in a suitable snack/drink.</span>
+                        </li>
+                    </ul>
+                    <div class="alert alert-secondary py-2 mb-0 small">
+                        <strong>Safety Note:</strong> Food should only be reused when properly stored and still safe.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dispose Food Responsibly -->
+        <div class="col-md-12 mt-4">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-3">Dispose Food Responsibly</h4>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2">&bull; Separate wet food waste from dry waste where possible.</li>
+                        <li class="mb-2">&bull; Compost suitable food waste if composting is available.</li>
+                        <li class="mb-2">&bull; Follow local waste collection rules.</li>
+                        <li class="mb-2">&bull; Give suitable food to animals only when it is safe and appropriate.</li>
+                        <li class="mb-2">&bull; Do not donate spoiled or unsafe food.</li>
+                    </ul>
+                    <div class="bg-dark bg-opacity-25 p-3 rounded">
+                        <strong>Note:</strong> Food that is spoiled or unsafe should not be eaten or donated.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

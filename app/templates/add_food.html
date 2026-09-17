@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Add Food{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white py-3">
+                    <h4 class="mb-0">Add Food Item</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('add_food') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Food Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ form.name if form else '' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label fw-bold">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" disabled {% if not form or not form.category %}selected{% endif %}>Select a category</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if form and form.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quantity" class="form-label fw-bold">Quantity <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="quantity" name="quantity" value="{{ form.quantity if form else '' }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="unit" class="form-label fw-bold">Unit <span class="text-danger">*</span></label>
+                                <select class="form-select" id="unit" name="unit" required>
+                                    <option value="" disabled {% if not form or not form.unit %}selected{% endif %}>Select a unit</option>
+                                    {% for u in units %}
+                                    <option value="{{ u }}" {% if form and form.unit == u %}selected{% endif %}>{{ u }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="purchase_date" class="form-label fw-bold">Purchase Date</label>
+                                <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="{{ form.purchase_date if form else '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expiry_date" class="form-label fw-bold">Expiry Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="expiry_date" name="expiry_date" value="{{ form.expiry_date if form else '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="storage_location" class="form-label fw-bold">Storage Location <span class="text-danger">*</span></label>
+                            <select class="form-select" id="storage_location" name="storage_location" required>
+                                <option value="" disabled {% if not form or not form.storage_location %}selected{% endif %}>Select a location</option>
+                                {% for loc in locations %}
+                                <option value="{{ loc }}" {% if form and form.storage_location == loc %}selected{% endif %}>{{ loc }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
+                            <button type="submit" class="btn btn-success btn-lg">Add Food</button>
+                            <a href="{{ url_for('food_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

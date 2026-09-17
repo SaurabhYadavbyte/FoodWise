@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Edit Meal Plan{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">Edit Meal Plan</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('edit_meal', id=meal.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="mb-3">
+                            <label for="plan_date" class="form-label fw-bold">Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="plan_date" name="plan_date" value="{{ meal.plan_date.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="meal_type" class="form-label fw-bold">Meal Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="meal_type" name="meal_type" required>
+                                {% for m_type in meal_types %}
+                                <option value="{{ m_type }}" {% if meal.meal_type == m_type %}selected{% endif %}>{{ m_type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meal_name" class="form-label fw-bold">Meal Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="meal_name" name="meal_name" value="{{ meal.meal_name }}" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="notes" class="form-label fw-bold">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3">{{ meal.notes if meal.notes else '' }}</textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
+                            <button type="submit" class="btn btn-primary btn-lg">Save Meal Plan</button>
+                            <a href="{{ url_for('meal_planner') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

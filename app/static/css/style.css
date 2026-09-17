@@ -1,0 +1,30 @@
+/* Custom styles for FoodWise */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Make headings scale smoothly on mobile */
+@media (max-width: 576px) {
+    h2 {
+        font-size: 1.5rem;
+    }
+    h3 {
+        font-size: 1.3rem;
+    }
+    h4 {
+        font-size: 1.15rem;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+    }
+}
+
+.feature-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}

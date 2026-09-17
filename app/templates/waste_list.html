@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Waste Log{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">Waste Log</h2>
+            <p class="text-muted small mb-0 mt-1">Record food that could not be used.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+            <a href="{{ url_for('waste_analytics') }}" class="btn btn-outline-primary">View Analysis</a>
+            <a href="{{ url_for('add_waste') }}" class="btn btn-success">+ Add Waste</a>
+        </div>
+    </div>
+
+    {% if wastes %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for waste in wastes %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title fw-bold text-danger mb-0">{{ waste.food_name }}</h5>
+                        <span class="badge bg-secondary">{{ waste.date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    <p class="text-muted small mb-3">{{ waste.category }} &bull; {{ waste.quantity }} {{ waste.unit }}</p>
+                    <ul class="list-unstyled mb-3">
+                        <li><strong>Reason:</strong> <br>{{ waste.reason }}</li>
+                        <li class="mt-2"><strong>Disposal:</strong> <span class="badge bg-dark">{{ waste.disposal_method }}</span></li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-top-0 pt-0">
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('edit_waste', id=waste.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form action="{{ url_for('delete_waste', id=waste.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this waste record?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-light rounded shadow-sm">
+        <h4 class="text-muted mb-3">No waste records added yet.</h4>
+        <a href="{{ url_for('add_waste') }}" class="btn btn-primary">Add First Waste Entry</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

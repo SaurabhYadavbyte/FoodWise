@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodWise - Offline</title>
+    <!-- Use local or simple inline styles for offline fallback so we don't strictly depend on external CDN if it's not cached -->
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #212529;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #198754;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #6c757d;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #198754;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #157347;
+        }
+    </style>
+</head>
+<body>
+    <h1>FoodWise is offline</h1>
+    <p>You need an internet connection to view or update your FoodWise data.</p>
+    <p>Please reconnect and try again.</p>
+    <button class="btn" onclick="window.location.reload()">Retry</button>
+</body>
+</html>

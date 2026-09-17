@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <h2 class="fw-bold mb-3 mb-md-0">Dashboard</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('add_food') }}" class="btn btn-success">+ Add Food</a>
+            <a href="{{ url_for('add_waste') }}" class="btn btn-danger">Record Waste</a>
+            <a href="{{ url_for('add_meal') }}" class="btn btn-primary">Plan Meal</a>
+            <a href="{{ url_for('tips') }}" class="btn btn-info text-white">Tips</a>
+            <a href="{{ url_for('food_list') }}" class="btn btn-outline-primary">My Food</a>
+        </div>
+    </div>
+
+    <!-- Pre-Shopping Reminder -->
+    <div class="alert alert-info d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border-0 shadow-sm mb-4">
+        <div class="mb-2 mb-sm-0">
+            <i class="text-primary fw-bold">Shopping soon?</i> Check what you already have before buying more.
+        </div>
+        <a href="{{ url_for('food_list') }}" class="btn btn-sm btn-primary">Check My Food</a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row row-cols-2 row-cols-md-5 g-3 mb-5 text-center">
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Total Items</h5>
+                    <h2 class="fw-bold mb-0">{{ total_items }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-start border-danger border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Expired</h5>
+                    <h2 class="fw-bold text-danger mb-0">{{ expired_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-start border-warning border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Use Today</h5>
+                    <h2 class="fw-bold text-warning mb-0">{{ use_today_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-start border-info border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Use Soon</h5>
+                    <h2 class="fw-bold text-info mb-0">{{ use_soon_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-start border-success border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Safe for Now</h5>
+                    <h2 class="fw-bold text-success mb-0">{{ safe_for_now_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if total_items == 0 %}
+    <!-- Empty State: No Food -->
+    <div class="text-center py-5 bg-light rounded shadow-sm mb-4">
+        <h4 class="text-muted mb-3">No food items added yet.</h4>
+        <a href="{{ url_for('add_food') }}" class="btn btn-primary">Add Food</a>
+    </div>
+    {% else %}
+        <!-- Food Needing Attention -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-danger mb-0">Food Needing Attention</h4>
+                <a href="{{ url_for('food_list') }}" class="btn btn-sm btn-outline-secondary">View All Food</a>
+            </div>
+            
+            {% if attention_foods %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for food in attention_foods %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title fw-bold text-success mb-0">{{ food.name }}</h5>
+                                {% if food.expiry_status == 'Expired' %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% elif food.expiry_status == 'Use Today' %}
+                                    <span class="badge bg-warning text-dark">Use Today</span>
+                                {% elif food.expiry_status == 'Use Soon' %}
+                                    <span class="badge bg-info text-dark">Use Soon</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-muted small mb-3">{{ food.category }} &bull; {{ food.storage_location }}</p>
+                            
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Quantity:</strong> {{ food.quantity }} {{ food.unit }}</li>
+                                <li><strong>Expiry Date:</strong> {{ food.expiry_date.strftime('%Y-%m-%d') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State: No Attention Needed -->
+            <div class="text-center py-4 bg-light rounded shadow-sm border border-success">
+                <h5 class="text-success mb-0">Great! No food needs immediate attention.</h5>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Upcoming Food -->
+        {% if upcoming_foods %}
+        <div>
+            <h4 class="fw-bold mb-3">Upcoming</h4>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for food in upcoming_foods %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title fw-bold text-success mb-0">{{ food.name }}</h5>
+                                <span class="badge bg-success">Safe for Now</span>
+                            </div>
+                            <p class="text-muted small mb-3">{{ food.category }} &bull; {{ food.storage_location }}</p>
+                            
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Quantity:</strong> {{ food.quantity }} {{ food.unit }}</li>
+                                <li><strong>Expiry Date:</strong> {{ food.expiry_date.strftime('%Y-%m-%d') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <hr class="my-5">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <h3 class="fw-bold mb-3 mb-md-0">Waste Insights</h3>
+        <a href="{{ url_for('waste_analytics') }}" class="btn btn-outline-primary btn-sm align-self-start align-self-md-auto">View Analysis</a>
+    </div>
+
+    {% if waste_insights %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 text-center">
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Total Waste Records</h5>
+                    <h3 class="fw-bold mb-0 text-danger">{{ waste_insights.total }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-bottom border-danger border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Most Wasted Category</h5>
+                    <h4 class="fw-bold mb-0 text-secondary">{{ waste_insights.most_category }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-bottom border-warning border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Most Common Reason</h5>
+                    <h5 class="fw-bold mb-0 text-secondary">{{ waste_insights.most_reason }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-bottom border-info border-4">
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-1">Top Disposal Method</h5>
+                    <h5 class="fw-bold mb-0 text-secondary">{{ waste_insights.most_disposal }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-4 bg-light rounded shadow-sm border border-secondary">
+        <h5 class="text-muted mb-0">No waste data available yet.</h5>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
