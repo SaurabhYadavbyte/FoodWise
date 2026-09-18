@@ -5,7 +5,7 @@ from collections import Counter
 from app import db
 from app.models import FoodItem, WasteLog, MealPlan, User, Feedback, ActivityLog
 from flask_login import login_user, logout_user, login_required, current_user
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 CATEGORIES = [
     'Vegetables', 'Fruits', 'Dairy', 'Cooked Food', 
@@ -47,6 +47,24 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+def is_admin_user():
+    return (
+        current_user.is_authenticated
+        and app.config.get('ADMIN_EMAIL')
+        and current_user.email.lower() == app.config.get('ADMIN_EMAIL', '').strip().lower()
+    )
+
+def household_user_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        if is_admin_user():
+            return redirect(url_for('admin_dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def log_activity(user_id, action, entity_type):
     try:
         log = ActivityLog(user_id=user_id, action=action, entity_type=entity_type)
@@ -61,11 +79,14 @@ def log_activity(user_id, action, entity_type):
 @app.route('/index')
 def index():
     if current_user.is_authenticated:
+        if is_admin_user():
+            return redirect(url_for('admin_dashboard'))
         return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 @app.route('/dashboard')
 @login_required
+@household_user_required
 def dashboard():
     all_foods = FoodItem.query.filter_by(user_id=current_user.id).order_by(FoodItem.expiry_date.asc()).all()
     
@@ -124,12 +145,14 @@ def dashboard():
 
 @app.route('/food')
 @login_required
+@household_user_required
 def food_list():
     foods = FoodItem.query.filter_by(user_id=current_user.id).order_by(FoodItem.expiry_date.asc()).all()
     return render_template('food_list.html', foods=foods)
 
 @app.route('/food/add', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def add_food():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -187,6 +210,7 @@ def add_food():
 
 @app.route('/food/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def edit_food(id):
     food = FoodItem.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
@@ -240,6 +264,7 @@ def edit_food(id):
 
 @app.route('/food/<int:id>/delete', methods=['POST'])
 @login_required
+@household_user_required
 def delete_food(id):
     food = FoodItem.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(food)
@@ -250,12 +275,14 @@ def delete_food(id):
 
 @app.route('/waste')
 @login_required
+@household_user_required
 def waste_list():
     wastes = WasteLog.query.filter_by(user_id=current_user.id).order_by(WasteLog.date.desc()).all()
     return render_template('waste_list.html', wastes=wastes)
 
 @app.route('/waste/add', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def add_waste():
     if request.method == 'POST':
         food_name = request.form.get('food_name', '').strip()
@@ -316,6 +343,7 @@ def add_waste():
 
 @app.route('/waste/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def edit_waste(id):
     waste = WasteLog.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
@@ -373,6 +401,7 @@ def edit_waste(id):
 
 @app.route('/waste/<int:id>/delete', methods=['POST'])
 @login_required
+@household_user_required
 def delete_waste(id):
     waste = WasteLog.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(waste)
@@ -383,6 +412,7 @@ def delete_waste(id):
 
 @app.route('/waste/analytics')
 @login_required
+@household_user_required
 def waste_analytics():
     all_wastes = WasteLog.query.filter_by(user_id=current_user.id).order_by(WasteLog.date.desc()).all()
     total_waste = len(all_wastes)
@@ -464,6 +494,7 @@ def waste_analytics():
 
 @app.route('/meals')
 @login_required
+@household_user_required
 def meal_planner():
     # Use Soon section logic
     all_foods = FoodItem.query.filter_by(user_id=current_user.id).order_by(FoodItem.expiry_date.asc()).all()
@@ -476,6 +507,7 @@ def meal_planner():
 
 @app.route('/meals/add', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def add_meal():
     if request.method == 'POST':
         date_str = request.form.get('plan_date')
@@ -513,6 +545,7 @@ def add_meal():
 
 @app.route('/meals/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def edit_meal(id):
     meal = MealPlan.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
@@ -548,6 +581,7 @@ def edit_meal(id):
 
 @app.route('/meals/<int:id>/delete', methods=['POST'])
 @login_required
+@household_user_required
 def delete_meal(id):
     meal = MealPlan.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(meal)
@@ -564,6 +598,8 @@ def tips():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
+        if is_admin_user():
+            return redirect(url_for('admin_dashboard'))
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -605,6 +641,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        if is_admin_user():
+            return redirect(url_for('admin_dashboard'))
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -614,6 +652,8 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             log_activity(user.id, 'Logged In', 'Account')
+            if is_admin_user():
+                return redirect(url_for('admin_dashboard'))
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password.', 'danger')
@@ -637,6 +677,7 @@ def service_worker():
 
 @app.route('/feedback', methods=['GET', 'POST'])
 @login_required
+@household_user_required
 def feedback():
     if request.method == 'POST':
         rating_str = request.form.get('rating')
@@ -655,7 +696,7 @@ def feedback():
             flash("Please select a valid rating.", "danger")
             return redirect(url_for('feedback'))
             
-        allowed_categories = ['Suggestion', 'Bug', 'Usability', 'Feature Request', 'Other']
+        allowed_categories = ['Suggestion', 'Usability', 'Feature Request', 'Other']
         if category not in allowed_categories:
             flash("Please select a valid category.", "danger")
             return redirect(url_for('feedback'))
@@ -680,7 +721,8 @@ def admin_dashboard():
     total_users = User.query.count()
     total_food = FoodItem.query.count()
     total_meals = MealPlan.query.count()
-    total_wastes = WasteLog.query.count()
+    all_wastes = WasteLog.query.all()
+    total_wastes = len(all_wastes)
     total_feedback = Feedback.query.count()
     new_feedback = Feedback.query.filter_by(status='New').count()
     
@@ -688,8 +730,46 @@ def admin_dashboard():
     recent_activity = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(20).all()
     recent_feedback = Feedback.query.order_by(Feedback.created_at.desc()).limit(20).all()
     
-    # Attach user info to activity and feedback for display
     users_dict = {u.id: u for u in User.query.all()}
+    
+    # Community Waste Insights
+    cat_counts = Counter([w.category for w in all_wastes])
+    reason_counts = Counter([w.reason for w in all_wastes])
+    disp_counts = Counter([w.disposal_method for w in all_wastes])
+    
+    most_category = cat_counts.most_common(1)[0][0] if cat_counts else "N/A"
+    most_reason = reason_counts.most_common(1)[0][0] if reason_counts else "N/A"
+    most_disposal = disp_counts.most_common(1)[0][0] if disp_counts else "N/A"
+    
+    today = date.today()
+    thirty_days_ago = today - timedelta(days=30)
+    sixty_days_ago = today - timedelta(days=60)
+    
+    current_period = [w for w in all_wastes if w.date >= thirty_days_ago]
+    prev_period = [w for w in all_wastes if sixty_days_ago <= w.date < thirty_days_ago]
+    
+    trend = {
+        'current': len(current_period),
+        'previous': len(prev_period)
+    }
+    
+    community_focus = None
+    if most_reason == "More food was cooked than needed":
+        community_focus = "Encourage households to plan portion sizes and check leftovers before cooking."
+    elif most_reason == "Too much food was bought":
+        community_focus = "Encourage households to check existing food before shopping."
+    elif most_reason == "Food expired":
+        community_focus = "Encourage regular expiry checks and use-soon habits."
+    elif most_reason != "N/A":
+        community_focus = "Monitor trends closely to determine targeted intervention."
+    
+    community_insights = {
+        'most_category': most_category,
+        'most_reason': most_reason,
+        'most_disposal': most_disposal,
+        'trend': trend,
+        'community_focus': community_focus
+    }
     
     return render_template('admin.html', 
         stats={
@@ -703,7 +783,8 @@ def admin_dashboard():
         recent_users=recent_users,
         recent_activity=recent_activity,
         recent_feedback=recent_feedback,
-        users_dict=users_dict
+        users_dict=users_dict,
+        community_insights=community_insights
     )
 
 @app.route('/admin/feedback/<int:id>/review', methods=['POST'])
@@ -713,5 +794,6 @@ def admin_review_feedback(id):
     fb = Feedback.query.get_or_404(id)
     fb.status = 'Reviewed'
     db.session.commit()
+    log_activity(current_user.id, 'Reviewed Feedback', 'Feedback')
     flash('Feedback marked as reviewed.', 'success')
     return redirect(url_for('admin_dashboard'))
