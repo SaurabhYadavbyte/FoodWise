@@ -1,0 +1,48 @@
+﻿{% extends "base.html" %}
+{% block title %}Submit Feedback{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 600px;">
+    <h2 class="fw-bold mb-3">Feedback</h2>
+    <p class="text-muted mb-4">Help us improve FoodWise by sharing your suggestions, bugs, or feature requests.</p>
+    
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('feedback') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="mb-3">
+                    <label for="rating" class="form-label fw-bold">Rating (1 to 5)</label>
+                    <select class="form-select" id="rating" name="rating" required>
+                        <option value="5" selected>5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Terrible</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="category" class="form-label fw-bold">Category</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="Suggestion">Suggestion</option>
+                        <option value="Bug">Bug</option>
+                        <option value="Usability">Usability</option>
+                        <option value="Feature Request">Feature Request</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="message" class="form-label fw-bold">Message</label>
+                    <textarea class="form-control" id="message" name="message" rows="4" required placeholder="Tell us more..."></textarea>
+                </div>
+                
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Feedback</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

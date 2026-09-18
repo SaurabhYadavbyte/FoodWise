@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'foodwise-static-v1';
+﻿const CACHE_NAME = 'foodwise-static-v2';
 const STATIC_ASSETS = [
     '/static/css/style.css',
     '/static/js/main.js',
@@ -37,7 +37,17 @@ self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
     // List of private routes that should NEVER be cached
-    const privateRoutes = ['/dashboard', '/food', '/meals', '/waste', '/login', '/register', '/logout'];
+    const privateRoutes = [
+    '/dashboard',
+    '/food',
+    '/meals',
+    '/waste',
+    '/login',
+    '/register',
+    '/logout',
+    '/feedback',
+    '/admin'
+];
     const isPrivateRoute = privateRoutes.some(route => url.pathname === route || url.pathname.startsWith(route + '/'));
 
     if (isPrivateRoute) {

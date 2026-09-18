@@ -1,8 +1,9 @@
+from functools import wraps
 import re
-from flask import current_app as app, render_template, request, redirect, url_for, flash
+from flask import current_app as app, render_template, request, redirect, url_for, flash, abort
 from collections import Counter
 from app import db
-from app.models import FoodItem, WasteLog, MealPlan, User
+from app.models import FoodItem, WasteLog, MealPlan, User, Feedback, ActivityLog
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime
 
@@ -35,9 +36,32 @@ DISPOSAL_METHODS = [
 
 MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        admin_email = app.config.get('ADMIN_EMAIL')
+        if not admin_email or current_user.email.lower() != admin_email:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+def log_activity(user_id, action, entity_type):
+    try:
+        log = ActivityLog(user_id=user_id, action=action, entity_type=entity_type)
+        db.session.add(log)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+
+
 @app.route('/')
 @app.route('/index')
 def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 @app.route('/dashboard')
@@ -155,6 +179,7 @@ def add_food():
         )
         db.session.add(food)
         db.session.commit()
+        log_activity(current_user.id, 'Added', 'Food')
         flash('Food added.', 'success')
         return redirect(url_for('food_list'))
 
@@ -207,6 +232,7 @@ def edit_food(id):
         food.storage_location = storage_location
 
         db.session.commit()
+        log_activity(current_user.id, 'Updated', 'Food')
         flash('Food updated.', 'success')
         return redirect(url_for('food_list'))
 
@@ -218,6 +244,7 @@ def delete_food(id):
     food = FoodItem.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(food)
     db.session.commit()
+    log_activity(current_user.id, 'Deleted', 'Food')
     flash('Food removed.', 'success')
     return redirect(url_for('food_list'))
 
@@ -281,6 +308,7 @@ def add_waste():
         )
         db.session.add(waste)
         db.session.commit()
+        log_activity(current_user.id, 'Added', 'Waste')
         flash('Waste recorded.', 'success')
         return redirect(url_for('waste_list'))
 
@@ -337,6 +365,7 @@ def edit_waste(id):
         waste.notes = notes
 
         db.session.commit()
+        log_activity(current_user.id, 'Updated', 'Waste')
         flash('Waste updated.', 'success')
         return redirect(url_for('waste_list'))
 
@@ -348,6 +377,7 @@ def delete_waste(id):
     waste = WasteLog.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(waste)
     db.session.commit()
+    log_activity(current_user.id, 'Deleted', 'Waste')
     flash('Waste removed.', 'success')
     return redirect(url_for('waste_list'))
 
@@ -370,6 +400,52 @@ def waste_analytics():
         'most_reason': reason_counts.most_common(1)[0][0] if reason_counts else "N/A",
         'most_disposal': disp_counts.most_common(1)[0][0] if disp_counts else "N/A"
     }
+
+    # Calculations for 30 days pattern
+    today = date.today()
+    thirty_days_ago = today - timedelta(days=30)
+    sixty_days_ago = today - timedelta(days=60)
+    
+    current_period = [w for w in all_wastes if w.date >= thirty_days_ago]
+    prev_period = [w for w in all_wastes if sixty_days_ago <= w.date < thirty_days_ago]
+    
+    trend = {
+        'current': len(current_period),
+        'previous': len(prev_period),
+        'message': 'Similar number of waste events.'
+    }
+    if trend['current'] < trend['previous']:
+        trend['message'] = "Fewer waste events than the previous period."
+    elif trend['current'] > trend['previous']:
+        trend['message'] = "More waste events were recorded than the previous period."
+        
+    # Generate Recommendation
+    recommendation = "Review Food Saving Tips for general advice."
+    priority_action = None
+    if insights['most_reason'] == "More food was cooked than needed":
+        recommendation = "Try preparing slightly smaller portions. Check previous leftovers before cooking another full meal."
+        priority_action = "Cook smaller portions."
+    elif insights['most_reason'] == "Too much food was bought":
+        recommendation = "Check My Food before shopping and buy only what is needed."
+        priority_action = "Review inventory before shopping."
+    elif insights['most_reason'] == "Food expired":
+        recommendation = "Check the Use Soon section regularly and keep older items visible."
+        priority_action = "Use food nearing expiry before buying more."
+    elif insights['most_reason'] == "Food was forgotten":
+        recommendation = "Keep food that should be used soon in an easy-to-see place and check your dashboard before planning meals."
+        priority_action = "Organize storage to keep older items visible."
+    elif insights['most_reason'] == "Meal plans changed":
+        recommendation = "Plan smaller or flexible meals when household schedules may change."
+        priority_action = "Make flexible meal plans."
+    elif insights['most_reason'] == "Leftover was not used":
+        recommendation = "Check usable leftovers before preparing a new meal."
+        priority_action = "Use safely stored leftovers in a suitable next meal."
+    elif insights['most_reason'] == "Food was stored incorrectly":
+        recommendation = "Review Food Saving Tips and follow suitable storage instructions."
+        priority_action = "Check storage instructions."
+    elif insights['most_reason'] == "Food quality became poor":
+        recommendation = "Buy smaller quantities of highly perishable food and use older items first."
+        priority_action = "Buy perishables in smaller batches."
     
     recent_wastes = all_wastes[:5]
     
@@ -380,7 +456,10 @@ def waste_analytics():
         cat_counts=cat_counts.items(),
         reason_counts=reason_counts.items(),
         disp_counts=disp_counts.items(),
-        recent_wastes=recent_wastes
+        recent_wastes=recent_wastes,
+        trend=trend,
+        recommendation=recommendation,
+        priority_action=priority_action
     )
 
 @app.route('/meals')
@@ -426,6 +505,7 @@ def add_meal():
         )
         db.session.add(meal)
         db.session.commit()
+        log_activity(current_user.id, 'Added', 'Meal')
         flash('Meal plan saved.', 'success')
         return redirect(url_for('meal_planner'))
         
@@ -460,6 +540,7 @@ def edit_meal(id):
         meal.notes = notes
         
         db.session.commit()
+        log_activity(current_user.id, 'Updated', 'Meal')
         flash('Meal plan updated.', 'success')
         return redirect(url_for('meal_planner'))
         
@@ -471,6 +552,7 @@ def delete_meal(id):
     meal = MealPlan.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(meal)
     db.session.commit()
+    log_activity(current_user.id, 'Deleted', 'Meal')
     flash('Meal plan removed.', 'success')
     return redirect(url_for('meal_planner'))
 
@@ -531,6 +613,7 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             login_user(user)
+            log_activity(user.id, 'Logged In', 'Account')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password.', 'danger')
@@ -540,6 +623,7 @@ def login():
 @app.route('/logout', methods=['POST'])
 @login_required
 def logout():
+    log_activity(current_user.id, 'Logged Out', 'Account')
     logout_user()
     return redirect(url_for('index'))
 
@@ -549,3 +633,85 @@ def service_worker():
     response = send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
     response.headers['Service-Worker-Allowed'] = '/'
     return response
+
+
+@app.route('/feedback', methods=['GET', 'POST'])
+@login_required
+def feedback():
+    if request.method == 'POST':
+        rating_str = request.form.get('rating')
+        category = request.form.get('category')
+        message = request.form.get('message', '').strip()
+        
+        if not rating_str or not category or not message:
+            flash("All fields are required.", "danger")
+            return redirect(url_for('feedback'))
+            
+        try:
+            rating = int(rating_str)
+            if rating < 1 or rating > 5:
+                raise ValueError()
+        except ValueError:
+            flash("Please select a valid rating.", "danger")
+            return redirect(url_for('feedback'))
+            
+        allowed_categories = ['Suggestion', 'Bug', 'Usability', 'Feature Request', 'Other']
+        if category not in allowed_categories:
+            flash("Please select a valid category.", "danger")
+            return redirect(url_for('feedback'))
+            
+        if len(message) > 2000:
+            flash("Message is too long (max 2000 characters).", "danger")
+            return redirect(url_for('feedback'))
+            
+        fb = Feedback(user_id=current_user.id, rating=rating, category=category, message=message)
+        db.session.add(fb)
+        db.session.commit()
+        log_activity(current_user.id, 'Submitted Feedback', 'Feedback')
+        flash('Thank you for your feedback.', 'success')
+        return redirect(url_for('dashboard'))
+        
+    return render_template('feedback.html')
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    total_users = User.query.count()
+    total_food = FoodItem.query.count()
+    total_meals = MealPlan.query.count()
+    total_wastes = WasteLog.query.count()
+    total_feedback = Feedback.query.count()
+    new_feedback = Feedback.query.filter_by(status='New').count()
+    
+    recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
+    recent_activity = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(20).all()
+    recent_feedback = Feedback.query.order_by(Feedback.created_at.desc()).limit(20).all()
+    
+    # Attach user info to activity and feedback for display
+    users_dict = {u.id: u for u in User.query.all()}
+    
+    return render_template('admin.html', 
+        stats={
+            'users': total_users,
+            'food': total_food,
+            'meals': total_meals,
+            'wastes': total_wastes,
+            'feedback': total_feedback,
+            'new_feedback': new_feedback
+        },
+        recent_users=recent_users,
+        recent_activity=recent_activity,
+        recent_feedback=recent_feedback,
+        users_dict=users_dict
+    )
+
+@app.route('/admin/feedback/<int:id>/review', methods=['POST'])
+@login_required
+@admin_required
+def admin_review_feedback(id):
+    fb = Feedback.query.get_or_404(id)
+    fb.status = 'Reviewed'
+    db.session.commit()
+    flash('Feedback marked as reviewed.', 'success')
+    return redirect(url_for('admin_dashboard'))

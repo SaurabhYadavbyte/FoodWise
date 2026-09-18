@@ -1,0 +1,98 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold mb-4 text-warning">Admin Dashboard</h2>
+    
+    <!-- Summary Cards -->
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3 mb-5 text-center">
+        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Users</h6><h4 class="fw-bold mb-0">{{ stats.users }}</h4></div></div></div>
+        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Food</h6><h4 class="fw-bold mb-0">{{ stats.food }}</h4></div></div></div>
+        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Meals</h6><h4 class="fw-bold mb-0">{{ stats.meals }}</h4></div></div></div>
+        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Waste</h6><h4 class="fw-bold mb-0">{{ stats.wastes }}</h4></div></div></div>
+        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Feedback</h6><h4 class="fw-bold mb-0">{{ stats.feedback }}</h4></div></div></div>
+        <div class="col"><div class="card border-warning border-0 shadow-sm"><div class="card-body"><h6 class="text-warning mb-1">New</h6><h4 class="fw-bold text-warning mb-0">{{ stats.new_feedback }}</h4></div></div></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Users -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white pt-3 pb-2 border-bottom-0"><h5 class="fw-bold mb-0">Recent Users</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-nowrap">
+                            <thead class="table-light"><tr><th class="ps-3">Name</th><th>Email</th><th>Joined</th></tr></thead>
+                            <tbody>
+                                {% for u in recent_users %}
+                                <tr><td class="ps-3">{{ u.name }}</td><td>{{ u.email }}</td><td class="small">{{ u.created_at.strftime('%d %b %Y') }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white pt-3 pb-2 border-bottom-0"><h5 class="fw-bold mb-0">Recent Activity</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-nowrap">
+                            <thead class="table-light"><tr><th class="ps-3">User</th><th>Action</th><th>Entity</th><th>Time</th></tr></thead>
+                            <tbody>
+                                {% for act in recent_activity %}
+                                <tr>
+                                    <td class="ps-3">{{ users_dict[act.user_id].name if act.user_id in users_dict else 'Unknown' }}</td>
+                                    <td><span class="badge bg-secondary">{{ act.action }}</span></td>
+                                    <td>{{ act.entity_type }}</td>
+                                    <td class="small">{{ act.created_at.strftime('%d %b %H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feedback Management -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white pt-3 pb-2 border-bottom-0"><h5 class="fw-bold mb-0">Feedback Management</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">User</th><th>Rating</th><th>Category</th><th>Message</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody>
+                                {% for fb in recent_feedback %}
+                                <tr>
+                                    <td class="ps-3 text-nowrap">{{ users_dict[fb.user_id].name if fb.user_id in users_dict else 'Unknown' }}</td>
+                                    <td>{{ fb.rating }}/5</td>
+                                    <td class="text-nowrap">{{ fb.category }}</td>
+                                    <td><small>{{ fb.message }}</small></td>
+                                    <td><span class="badge {% if fb.status == 'New' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ fb.status }}</span></td>
+                                    <td>
+                                        {% if fb.status == 'New' %}
+                                        <form method="POST" action="{{ url_for('admin_review_feedback', id=fb.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Review</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted small">Done</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

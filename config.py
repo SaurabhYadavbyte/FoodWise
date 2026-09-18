@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pathlib import Path
 
 basedir = Path(__file__).parent
@@ -12,3 +12,6 @@ class Config:
     # Session Security
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+
+    # Admin Setup
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '').strip().lower()

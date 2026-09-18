@@ -47,3 +47,15 @@ if (installButton) {
         console.log('PWA was installed');
     });
 }
+
+// Flash Toast Auto-dismiss
+document.addEventListener("DOMContentLoaded", function() {
+    const toasts = document.querySelectorAll('.flash-toast');
+    toasts.forEach(toast => {
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.5s ease-out';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    });
+});

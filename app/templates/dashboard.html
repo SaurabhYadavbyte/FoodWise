@@ -3,14 +3,15 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <h2 class="fw-bold mb-3 mb-md-0">Dashboard</h2>
-        <div class="d-flex flex-wrap gap-2">
-            <a href="{{ url_for('add_food') }}" class="btn btn-success">+ Add Food</a>
-            <a href="{{ url_for('add_waste') }}" class="btn btn-danger">Record Waste</a>
-            <a href="{{ url_for('add_meal') }}" class="btn btn-primary">Plan Meal</a>
-            <a href="{{ url_for('tips') }}" class="btn btn-info text-white">Tips</a>
-            <a href="{{ url_for('food_list') }}" class="btn btn-outline-primary">My Food</a>
+    <div class="mb-4">
+        <h2 class="fw-bold mb-3">Dashboard</h2>
+        <div class="row g-2">
+            <div class="col-6 col-md-auto d-grid"><a href="{{ url_for('add_food') }}" class="btn btn-success">+ Add Food</a></div>
+            <div class="col-6 col-md-auto d-grid"><a href="{{ url_for('add_waste') }}" class="btn btn-danger">Record Waste</a></div>
+            <div class="col-6 col-md-auto d-grid"><a href="{{ url_for('add_meal') }}" class="btn btn-primary">Plan Meal</a></div>
+            <div class="col-6 col-md-auto d-grid"><a href="{{ url_for('food_list') }}" class="btn btn-outline-primary">My Food</a></div>
+            <div class="col-6 col-md-auto d-grid"><a href="{{ url_for('tips') }}" class="btn btn-info text-white">Tips</a></div>
+            <div class="col-6 col-md-auto d-grid"><a href="{{ url_for('waste_analytics') }}" class="btn btn-outline-secondary">Waste Analysis</a></div>
         </div>
     </div>
 
