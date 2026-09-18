@@ -30,6 +30,9 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
                     {% if current_user.is_authenticated %}
+                        <li class="nav-item d-lg-none mb-2 border-bottom border-light pb-2"><span class="nav-link text-white fw-bold fs-5 px-0">Hi, {{ current_user.name.split()[0] }}</span></li>
+                    {% endif %}
+                    {% if current_user.is_authenticated %}
                         {% if config.ADMIN_EMAIL and current_user.email.lower() == config.ADMIN_EMAIL %}
                             <!-- ADMIN NAVBAR -->
                             <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin') %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
@@ -44,7 +47,7 @@
                             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'feedback' %}active{% endif %}" href="{{ url_for('feedback') }}">Feedback</a></li>
                             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'account' %}active{% endif %}" href="{{ url_for('account') }}">Account</a></li>
                         {% endif %}
-                        <li class="nav-item ms-lg-3"><span class="nav-link text-white fw-bold">Hi, {{ current_user.name.split()[0] }}</span></li>
+                        <li class="nav-item ms-lg-3 d-none d-lg-block"><span class="nav-link text-white fw-bold">Hi, {{ current_user.name.split()[0] }}</span></li>
                         <li class="nav-item">
                             <form action="{{ url_for('logout') }}" method="POST" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -73,12 +76,12 @@
     <!-- Main Content -->
     <main class="flex-grow-1">
     <!-- Flash Toast Container -->
-    <div class="flash-toast-container position-fixed p-3" style="z-index: 1055; right: 0; top: 60px; max-width: 360px; width: 100%;">
+    <div class="flash-toast-container position-fixed p-3" style="z-index: 1055; right: 0; top: 60px; max-width: 360px; width: 100%; pointer-events: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     {% set bs_cat = 'success' if category == 'success' else ('danger' if category == 'error' or category == 'danger' else ('warning' if category == 'warning' else 'info')) %}
-                    <div class="toast align-items-center text-white bg-{{ bs_cat }} border-0 mb-2 show flash-toast shadow-sm" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast align-items-center text-white bg-{{ bs_cat }} border-0 mb-2 show flash-toast shadow-sm" style="pointer-events: auto;" role="alert" aria-live="assertive" aria-atomic="true">
                         <div class="d-flex">
                             <div class="toast-body fw-bold">
                                 {{ message }}
