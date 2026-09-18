@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'foodwise-static-v2';
+﻿const CACHE_NAME = 'foodwise-static-v3';
 const STATIC_ASSETS = [
     '/static/css/style.css',
     '/static/js/main.js',
@@ -46,7 +46,8 @@ self.addEventListener('fetch', event => {
     '/register',
     '/logout',
     '/feedback',
-    '/admin'
+    '/admin',
+    '/account'
 ];
     const isPrivateRoute = privateRoutes.some(route => url.pathname === route || url.pathname.startsWith(route + '/'));
 

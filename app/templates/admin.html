@@ -7,12 +7,53 @@
     
     <!-- Summary Cards -->
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3 mb-5 text-center">
-        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Registered Users</h6><h4 class="fw-bold mb-0">{{ stats.users }}</h4></div></div></div>
+        <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Household Users</h6><h4 class="fw-bold mb-0">{{ stats.users }}</h4></div></div></div>
         <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Food Records</h6><h4 class="fw-bold mb-0">{{ stats.food }}</h4></div></div></div>
         <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Meal Plans</h6><h4 class="fw-bold mb-0">{{ stats.meals }}</h4></div></div></div>
         <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Waste Events</h6><h4 class="fw-bold mb-0">{{ stats.wastes }}</h4></div></div></div>
         <div class="col"><div class="card bg-light border-0 shadow-sm"><div class="card-body"><h6 class="text-muted mb-1">Feedback</h6><h4 class="fw-bold mb-0">{{ stats.feedback }}</h4></div></div></div>
         <div class="col"><div class="card border-warning border-0 shadow-sm"><div class="card-body"><h6 class="text-warning mb-1">New</h6><h4 class="fw-bold text-warning mb-0">{{ stats.new_feedback }}</h4></div></div></div>
+    </div>
+
+    <!-- CEP Engagement Overview -->
+    <h4 class="fw-bold mb-3">CEP Engagement Overview</h4>
+    <div class="row row-cols-2 row-cols-md-4 g-3 mb-5 text-center">
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-top border-success border-4">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-2">Users Using Food Inventory</h6>
+                    <h3 class="fw-bold mb-1">{{ engagement.food }}</h3>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">{{ engagement.food_pct }}% Engagement</span>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-top border-primary border-4">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-2">Users Using Meal Planner</h6>
+                    <h3 class="fw-bold mb-1">{{ engagement.meals }}</h3>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ engagement.meals_pct }}% Engagement</span>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-top border-danger border-4">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-2">Users Recording Waste</h6>
+                    <h3 class="fw-bold mb-1">{{ engagement.waste }}</h3>
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">{{ engagement.waste_pct }}% Engagement</span>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 border-top border-warning border-4">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-2">Users Giving Feedback</h6>
+                    <h3 class="fw-bold mb-1">{{ engagement.feedback }}</h3>
+                    <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill px-3">{{ engagement.feedback_pct }}% Participation</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Community Waste Insights -->
@@ -61,49 +102,6 @@
     {% endif %}
 
     <div class="row g-4">
-        <!-- Recent Activity -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white pt-3 pb-2 border-bottom-0"><h5 class="fw-bold mb-0">Recent Activity</h5></div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 text-nowrap">
-                            <thead class="table-light"><tr><th class="ps-3">User</th><th>Action</th><th>Entity</th><th>Date/Time</th></tr></thead>
-                            <tbody>
-                                {% for act in recent_activity %}
-                                <tr>
-                                    <td class="ps-3">{{ users_dict[act.user_id].name if act.user_id in users_dict else 'Unknown' }}</td>
-                                    <td><span class="badge bg-secondary">{{ act.action }}</span></td>
-                                    <td>{{ act.entity_type }}</td>
-                                    <td class="small">{{ act.created_at.strftime('%d %b %H:%M') }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Users -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white pt-3 pb-2 border-bottom-0"><h5 class="fw-bold mb-0">Recent Users / User Engagement</h5></div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 text-nowrap">
-                            <thead class="table-light"><tr><th class="ps-3">Name</th><th>Email</th><th>Joined Date</th></tr></thead>
-                            <tbody>
-                                {% for u in recent_users %}
-                                <tr><td class="ps-3">{{ u.name }}</td><td>{{ u.email }}</td><td class="small">{{ u.created_at.strftime('%d %b %Y') }}</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <!-- Feedback Management -->
         <div class="col-12 mt-4">
             <div class="card shadow-sm border-0">
@@ -111,12 +109,11 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light"><tr><th class="ps-3">User</th><th>Rating</th><th>Category</th><th>Message</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+                            <thead class="table-light"><tr><th class="ps-3">Rating</th><th>Category</th><th>Message</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
                             <tbody>
                                 {% for fb in recent_feedback %}
                                 <tr>
-                                    <td class="ps-3 text-nowrap">{{ users_dict[fb.user_id].name if fb.user_id in users_dict else 'Unknown' }}</td>
-                                    <td>{{ fb.rating }}/5</td>
+                                    <td class="ps-3">{{ fb.rating }}/5</td>
                                     <td class="text-nowrap">{{ fb.category }}</td>
                                     <td><small>{{ fb.message }}</small></td>
                                     <td><span class="badge {% if fb.status == 'New' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ fb.status }}</span></td>

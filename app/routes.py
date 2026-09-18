@@ -202,7 +202,7 @@ def add_food():
         )
         db.session.add(food)
         db.session.commit()
-        log_activity(current_user.id, 'Added', 'Food')
+
         flash('Food added.', 'success')
         return redirect(url_for('food_list'))
 
@@ -256,7 +256,7 @@ def edit_food(id):
         food.storage_location = storage_location
 
         db.session.commit()
-        log_activity(current_user.id, 'Updated', 'Food')
+
         flash('Food updated.', 'success')
         return redirect(url_for('food_list'))
 
@@ -269,7 +269,7 @@ def delete_food(id):
     food = FoodItem.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(food)
     db.session.commit()
-    log_activity(current_user.id, 'Deleted', 'Food')
+
     flash('Food removed.', 'success')
     return redirect(url_for('food_list'))
 
@@ -335,7 +335,7 @@ def add_waste():
         )
         db.session.add(waste)
         db.session.commit()
-        log_activity(current_user.id, 'Added', 'Waste')
+
         flash('Waste recorded.', 'success')
         return redirect(url_for('waste_list'))
 
@@ -393,7 +393,7 @@ def edit_waste(id):
         waste.notes = notes
 
         db.session.commit()
-        log_activity(current_user.id, 'Updated', 'Waste')
+
         flash('Waste updated.', 'success')
         return redirect(url_for('waste_list'))
 
@@ -406,7 +406,7 @@ def delete_waste(id):
     waste = WasteLog.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(waste)
     db.session.commit()
-    log_activity(current_user.id, 'Deleted', 'Waste')
+
     flash('Waste removed.', 'success')
     return redirect(url_for('waste_list'))
 
@@ -537,7 +537,7 @@ def add_meal():
         )
         db.session.add(meal)
         db.session.commit()
-        log_activity(current_user.id, 'Added', 'Meal')
+
         flash('Meal plan saved.', 'success')
         return redirect(url_for('meal_planner'))
         
@@ -573,7 +573,7 @@ def edit_meal(id):
         meal.notes = notes
         
         db.session.commit()
-        log_activity(current_user.id, 'Updated', 'Meal')
+
         flash('Meal plan updated.', 'success')
         return redirect(url_for('meal_planner'))
         
@@ -586,7 +586,7 @@ def delete_meal(id):
     meal = MealPlan.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     db.session.delete(meal)
     db.session.commit()
-    log_activity(current_user.id, 'Deleted', 'Meal')
+
     flash('Meal plan removed.', 'success')
     return redirect(url_for('meal_planner'))
 
@@ -651,7 +651,7 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             login_user(user)
-            log_activity(user.id, 'Logged In', 'Account')
+
             if is_admin_user():
                 return redirect(url_for('admin_dashboard'))
             return redirect(url_for('dashboard'))
@@ -663,7 +663,7 @@ def login():
 @app.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    log_activity(current_user.id, 'Logged Out', 'Account')
+
     logout_user()
     return redirect(url_for('index'))
 
@@ -708,7 +708,7 @@ def feedback():
         fb = Feedback(user_id=current_user.id, rating=rating, category=category, message=message)
         db.session.add(fb)
         db.session.commit()
-        log_activity(current_user.id, 'Submitted Feedback', 'Feedback')
+
         flash('Thank you for your feedback.', 'success')
         return redirect(url_for('dashboard'))
         
@@ -718,19 +718,39 @@ def feedback():
 @login_required
 @admin_required
 def admin_dashboard():
-    total_users = User.query.count()
-    total_food = FoodItem.query.count()
-    total_meals = MealPlan.query.count()
-    all_wastes = WasteLog.query.all()
+    admin_email = app.config.get('ADMIN_EMAIL', '').strip().lower()
+    admin_user = User.query.filter_by(email=admin_email).first()
+    admin_id = admin_user.id if admin_user else -1
+    
+    # Base query filters excluding admin
+    household_users_count = User.query.filter(User.id != admin_id).count()
+    total_food = FoodItem.query.filter(FoodItem.user_id != admin_id).count()
+    total_meals = MealPlan.query.filter(MealPlan.user_id != admin_id).count()
+    
+    all_wastes = WasteLog.query.filter(WasteLog.user_id != admin_id).all()
     total_wastes = len(all_wastes)
-    total_feedback = Feedback.query.count()
-    new_feedback = Feedback.query.filter_by(status='New').count()
     
-    recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
-    recent_activity = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(20).all()
-    recent_feedback = Feedback.query.order_by(Feedback.created_at.desc()).limit(20).all()
+    total_feedback = Feedback.query.filter(Feedback.user_id != admin_id).count()
+    new_feedback = Feedback.query.filter(Feedback.user_id != admin_id, Feedback.status == 'New').count()
     
-    users_dict = {u.id: u for u in User.query.all()}
+    # Engagement Overview (Distinct Users excluding admin)
+    users_using_food = db.session.query(FoodItem.user_id).filter(FoodItem.user_id != admin_id).distinct().count()
+    users_using_meals = db.session.query(MealPlan.user_id).filter(MealPlan.user_id != admin_id).distinct().count()
+    users_using_waste = db.session.query(WasteLog.user_id).filter(WasteLog.user_id != admin_id).distinct().count()
+    users_using_feedback = db.session.query(Feedback.user_id).filter(Feedback.user_id != admin_id).distinct().count()
+    
+    engagement = {
+        'food': users_using_food,
+        'meals': users_using_meals,
+        'waste': users_using_waste,
+        'feedback': users_using_feedback,
+        'food_pct': round((users_using_food / household_users_count * 100) if household_users_count > 0 else 0),
+        'meals_pct': round((users_using_meals / household_users_count * 100) if household_users_count > 0 else 0),
+        'waste_pct': round((users_using_waste / household_users_count * 100) if household_users_count > 0 else 0),
+        'feedback_pct': round((users_using_feedback / household_users_count * 100) if household_users_count > 0 else 0),
+    }
+    
+    recent_feedback = Feedback.query.filter(Feedback.user_id != admin_id).order_by(Feedback.created_at.desc()).limit(20).all()
     
     # Community Waste Insights
     cat_counts = Counter([w.category for w in all_wastes])
@@ -773,17 +793,15 @@ def admin_dashboard():
     
     return render_template('admin.html', 
         stats={
-            'users': total_users,
+            'users': household_users_count,
             'food': total_food,
             'meals': total_meals,
             'wastes': total_wastes,
             'feedback': total_feedback,
             'new_feedback': new_feedback
         },
-        recent_users=recent_users,
-        recent_activity=recent_activity,
+        engagement=engagement,
         recent_feedback=recent_feedback,
-        users_dict=users_dict,
         community_insights=community_insights
     )
 
@@ -794,6 +812,54 @@ def admin_review_feedback(id):
     fb = Feedback.query.get_or_404(id)
     fb.status = 'Reviewed'
     db.session.commit()
-    log_activity(current_user.id, 'Reviewed Feedback', 'Feedback')
+
     flash('Feedback marked as reviewed.', 'success')
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/account')
+@login_required
+@household_user_required
+def account():
+    return render_template('account.html')
+
+@app.route('/account/delete', methods=['POST'])
+@login_required
+@household_user_required
+def delete_account():
+    password = request.form.get('password')
+    confirmation = request.form.get('confirmation')
+    
+    if not password:
+        flash("Please enter your password.", "danger")
+        return redirect(url_for('account'))
+        
+    if confirmation != "DELETE":
+        flash("Please type DELETE to confirm.", "danger")
+        return redirect(url_for('account'))
+        
+    if not current_user.check_password(password):
+        flash("Incorrect password.", "danger")
+        return redirect(url_for('account'))
+        
+    user_id = current_user.id
+    
+    try:
+        Feedback.query.filter_by(user_id=user_id).delete()
+        ActivityLog.query.filter_by(user_id=user_id).delete()
+        FoodItem.query.filter_by(user_id=user_id).delete()
+        MealPlan.query.filter_by(user_id=user_id).delete()
+        WasteLog.query.filter_by(user_id=user_id).delete()
+        
+        user_record = User.query.get(user_id)
+        if user_record:
+            db.session.delete(user_record)
+            
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while deleting your account.", "danger")
+        return redirect(url_for('account'))
+        
+    logout_user()
+    flash("Your account and FoodWise data have been deleted.", "success")
+    return redirect(url_for('index'))

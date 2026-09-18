@@ -1,0 +1,47 @@
+﻿{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 600px;">
+    <h2 class="fw-bold mb-4">Account Settings</h2>
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Profile</h5>
+            <div class="mb-3">
+                <label class="form-label text-muted small mb-1">Name</label>
+                <p class="fw-bold fs-5 mb-0">{{ current_user.name }}</p>
+            </div>
+            <div>
+                <label class="form-label text-muted small mb-1">Email</label>
+                <p class="mb-0">{{ current_user.email }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card border-danger shadow-sm mb-5">
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-danger mb-3">Danger Zone</h5>
+            <div class="alert alert-warning mb-4">
+                Deleting your account will permanently remove your FoodWise account and all of your FoodWise data. This action cannot be undone.
+            </div>
+            
+            <form action="{{ url_for('delete_account') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-bold">Current Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="confirmation" class="form-label fw-bold">Type DELETE to confirm</label>
+                    <input type="text" class="form-control" id="confirmation" name="confirmation" required placeholder="DELETE">
+                </div>
+                
+                <button type="submit" class="btn btn-danger w-100 fw-bold">Delete My Account</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

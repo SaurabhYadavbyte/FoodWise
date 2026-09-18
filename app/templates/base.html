@@ -42,6 +42,7 @@
                             <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('waste') %}active{% endif %}" href="{{ url_for('waste_list') }}">Waste Log</a></li>
                             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'tips' %}active{% endif %}" href="{{ url_for('tips') }}">Tips</a></li>
                             <li class="nav-item"><a class="nav-link {% if request.endpoint == 'feedback' %}active{% endif %}" href="{{ url_for('feedback') }}">Feedback</a></li>
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'account' %}active{% endif %}" href="{{ url_for('account') }}">Account</a></li>
                         {% endif %}
                         <li class="nav-item ms-lg-3"><span class="nav-link text-white fw-bold">Hi, {{ current_user.name.split()[0] }}</span></li>
                         <li class="nav-item">
